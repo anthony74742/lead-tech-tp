@@ -24,6 +24,6 @@ jobs:
 
       - name: Build and push the hello-docker Docker image
         run: |
-          IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/hello-docker-gcr-demo:staging
+          IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/hello-docker-gcr-demo:production
           docker build . --tag "$IMAGE"
           docker push "$IMAGE"
