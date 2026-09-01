@@ -19,6 +19,25 @@
         <% }) %>
       </ul>
 
+      <% if (zipUrl) { %>
+
+        <a href="<%= zipUrl %>" class="btn btn-success btn-block" id="download-zip">Download ZIP</a>
+
+      <% } else if (zipPending) { %>
+
+        <div class="alert alert-info" id="zip-pending">
+          <strong>ZIP en cours de generation...</strong> cette page se rafraichit automatiquement.
+        </div>
+        <script>setTimeout(function () { location.reload(); }, 3000);</script>
+
+      <% } else { %>
+
+        <form method="post" action="/zip?tags=<%= encodeURIComponent(tagsParameter) %>&amp;tagmode=<%= encodeURIComponent(tagmodeParameter) %>">
+          <button type="submit" class="btn btn-primary btn-block" id="zip-results">ZIP result</button>
+        </form>
+
+      <% } %>
+
     <% } else { %>
       <div class="alert alert-info"><strong>No results</strong></div>
     <% } %>
