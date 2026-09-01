@@ -1,3 +1,5 @@
 node_modules
 coverage
 .env
+
+app/firebase_config.js

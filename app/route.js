@@ -2,10 +2,16 @@ const querystring = require('querystring');
 const formValidator = require('./form_validator');
 const photoModel = require('./photo_model');
 const { publishMessage } = require('./pubsub');
-const { getDownloadUrl } = require('./zip_service');
+const { getDownloadUrl, getGeneratedZips } = require('./zip_service');
 const { jobs } = require('./worker');
 
 function route(app) {
+  app.get('/zips', (req, res) => {
+    return getGeneratedZips(process.env.PRENOM)
+      .then(zips => res.json(zips))
+      .catch(error => res.status(500).send({ error: error.message }));
+  });
+
   app.get('/', (req, res) => {
     const tags = req.query.tags;
     const tagmode = req.query.tagmode;
@@ -67,7 +73,7 @@ function route(app) {
     // job en cours : le worker remplacera cette valeur par le nom du zip
     jobs[tags] = null;
 
-    return publishMessage({ tags, tagmode, requestedAt: new Date().toISOString() })
+    return publishMessage({ tags, tagmode, prenom: process.env.PRENOM, requestedAt: new Date().toISOString() })
       .then(() => {
         const qs = querystring.stringify({ tags, tagmode });
         return res.redirect(`/?${qs}`);

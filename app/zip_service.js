@@ -1,32 +1,28 @@
 const crypto = require('crypto');
 const archiver = require('archiver');
-const got = require('got');
+const axios = require('axios');
 const { Storage } = require('@google-cloud/storage');
 const photoModel = require('./photo_model');
+const { db } = require('./firebase');
 
 const storage = new Storage();
 
-function buildZip(photos) {
-  const downloads = photos.map(photo =>
-    got.default.get(photo.media.m, { responseType: 'buffer' })
+async function buildZip(photos) {
+  const archive = archiver('zip');
+
+  await Promise.all(
+    photos.map(async (photo, i) => {
+      const response = await axios.get(photo.media.m, { responseType: 'stream' });
+      archive.append(response.data, { name: `${i}.jpg` });
+    })
   );
 
-  return Promise.all(downloads).then(responses => {
-    return new Promise((resolve, reject) => {
-      const archive = archiver('zip');
-      const chunks = [];
+  archive.finalize();
 
-      archive.on('data', chunk => chunks.push(chunk));
-      archive.on('error', reject);
-      archive.on('end', () => resolve(Buffer.concat(chunks)));
-
-      responses.forEach((response, i) => archive.append(response.body, { name: `${i}.jpg` }));
-      archive.finalize();
-    });
-  });
+  return archive;
 }
 
-function uploadZip(zipBuffer) {
+function uploadZip(archive) {
   const filename = `${crypto.randomUUID()}.zip`;
   const stream = storage
     .bucket(process.env.GCS_BUCKET)
@@ -37,9 +33,10 @@ function uploadZip(zipBuffer) {
     });
 
   return new Promise((resolve, reject) => {
+    archive.on('error', reject);
     stream.on('error', reject);
     stream.on('finish', () => resolve(filename));
-    stream.end(zipBuffer);
+    archive.pipe(stream);
   });
 }
 
@@ -56,11 +53,32 @@ function getDownloadUrl(filename) {
     .then(signedUrls => signedUrls[0]);
 }
 
-function zipPhotosForTags(tags, tagmode) {
+async function saveJobToFirebase(prenom, filename, gcsPath) {
+  const heureDuZippage = Date.now();
+
+  await db
+    .ref(`/${prenom}/${heureDuZippage}`)
+    .set({
+      filename,
+      path: gcsPath
+    });
+}
+
+function getGeneratedZips(prenom) {
+  return db
+    .ref(`/${prenom}`)
+    .once('value')
+    .then(snapshot => snapshot.val() || {});
+}
+
+function zipPhotosForTags(tags, tagmode, prenom) {
   return photoModel
     .getFlickrPhotos(tags, tagmode)
     .then(photos => buildZip(photos.slice(0, 10)))
-    .then(uploadZip);
+    .then(uploadZip)
+    .then(filename =>
+      saveJobToFirebase(prenom, filename, filename).then(() => filename)
+    );
 }
 
-module.exports = { zipPhotosForTags, getDownloadUrl };
+module.exports = { zipPhotosForTags, getDownloadUrl, getGeneratedZips };
