@@ -4,6 +4,7 @@ const photoModel = require('./photo_model');
 const { publishMessage } = require('./pubsub');
 const { getDownloadUrl, getGeneratedZips } = require('./zip_service');
 const { jobs } = require('./worker');
+const { rateLimiterMiddleware } = require('./rate_limiter');
 
 function route(app) {
   app.get('/zips', (req, res) => {
@@ -66,7 +67,7 @@ function route(app) {
       });
   });
 
-  app.post('/zip', (req, res) => {
+  app.post('/zip', rateLimiterMiddleware, (req, res) => {
     const tags = req.query.tags;
     const tagmode = req.query.tagmode;
 
