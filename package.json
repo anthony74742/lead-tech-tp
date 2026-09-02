@@ -24,6 +24,7 @@
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "firebase-admin": "^14.3.0",
+    "redis": "^6.2.1",
     "serve-favicon": "^2.5.1"
   },
   "devDependencies": {

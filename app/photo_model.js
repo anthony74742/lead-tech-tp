@@ -7,7 +7,9 @@ function getFlickrPhotos(tags, tagmode) {
 
   const url = `https://api.flickr.com/services/feeds/photos_public.gne?${qs}`;
 
-  return axios.get(url).then(response => {
+  return axios.get(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  }).then(response => {
     const photoFeed = jsonpHelper.parseJSONP(response.data);
 
     photoFeed.items.forEach(photo => {

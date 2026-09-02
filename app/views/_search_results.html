@@ -23,6 +23,16 @@
 
         <a href="<%= zipUrl %>" class="btn btn-success btn-block" id="download-zip">Download ZIP</a>
 
+      <% } else if (zipFailed) { %>
+
+        <div class="alert alert-danger" id="zip-failed">
+          <strong>La generation du ZIP a echoue.</strong> Veuillez reessayer.
+        </div>
+
+        <form method="post" action="/zip?tags=<%= encodeURIComponent(tagsParameter) %>&amp;tagmode=<%= encodeURIComponent(tagmodeParameter) %>">
+          <button type="submit" class="btn btn-primary btn-block" id="zip-results">ZIP result</button>
+        </form>
+
       <% } else if (zipPending) { %>
 
         <div class="alert alert-info" id="zip-pending">

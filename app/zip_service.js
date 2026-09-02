@@ -12,7 +12,10 @@ async function buildZip(photos) {
 
   await Promise.all(
     photos.map(async (photo, i) => {
-      const response = await axios.get(photo.media.m, { responseType: 'stream' });
+      const response = await axios.get(photo.media.m, {
+        responseType: 'stream',
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
       archive.append(response.data, { name: `${i}.jpg` });
     })
   );

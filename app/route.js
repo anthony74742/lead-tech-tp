@@ -24,7 +24,8 @@ function route(app) {
       searchResults: false,
       invalidParameters: false,
       zipUrl: '',
-      zipPending: false
+      zipPending: false,
+      zipFailed: false
     };
 
     // if no input params are passed in then render the view with out querying the api
@@ -47,6 +48,11 @@ function route(app) {
 
         // pas de zip demande pour ces tags
         if (!(tags in jobs)) {
+          return res.render('index', ejsLocalVariables);
+        }
+
+        if (jobs[tags] === 'failed') {
+          ejsLocalVariables.zipFailed = true;
           return res.render('index', ejsLocalVariables);
         }
 
