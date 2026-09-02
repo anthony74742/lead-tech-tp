@@ -1,6 +1,10 @@
 const request = require('supertest');
 
 jest.mock('../../app/photo_model');
+jest.mock('../../app/pubsub', () => ({
+  publishMessage: jest.fn(() => Promise.resolve('message-id')),
+  listenForMessages: jest.fn()
+}));
 const app = require('../../app/server');
 
 describe('index route', () => {
